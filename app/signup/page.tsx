@@ -154,7 +154,7 @@ export default function SignUp() {
                 Privilege 01
               </h3>
               <p className="text-2xl font-serif text-white/90 italic">
-                "First access to limited drops."
+                &quot;First access to limited drops.&quot;
               </p>
             </div>
             <div className="w-12 h-[1px] bg-white/20 mx-auto"></div>
@@ -163,7 +163,7 @@ export default function SignUp() {
                 Privilege 02
               </h3>
               <p className="text-2xl font-serif text-white/90 italic">
-                "Complimentary tailoring."
+                &quot;Complimentary tailoring.&quot;
               </p>
             </div>
           </div>

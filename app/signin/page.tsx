@@ -28,7 +28,7 @@ export default function SignIn() {
             Collection 2025
           </p>
           <p className="text-xl font-serif italic text-white/80">
-            "Silence is the ultimate luxury."
+            &quot;Silence is the ultimate luxury.&quot;
           </p>
         </div>
       </div>

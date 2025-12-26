@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { ArrowRight, Layers, ChevronRight, Zap } from "lucide-react";
+import Link from "next/link";
 
 const CollectionPage = () => {
   const [activeCard, setActiveCard] = useState<number | null>(null);
@@ -91,7 +92,10 @@ const CollectionPage = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90 group-hover:opacity-70 transition-opacity duration-500"></div>
 
               {/* Card Content */}
-              <div className="absolute inset-0 p-8 flex flex-col justify-between z-20">
+              <Link
+                href="/ProductDetails"
+                className="absolute inset-0 p-8 flex flex-col justify-between z-20"
+              >
                 {/* Top Tag */}
                 <div className="flex justify-between items-start">
                   <span className="px-3 py-1 border border-white/20 rounded-full text-[10px] tracking-[0.2em] text-gray-300 uppercase bg-black/30 backdrop-blur-md group-hover:border-cyan-400/50 group-hover:text-cyan-400 transition-colors duration-500">
@@ -116,7 +120,7 @@ const CollectionPage = () => {
                     <ArrowRight className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300 text-cyan-400" />
                   </div>
                 </div>
-              </div>
+              </Link>
 
               {/* Electric Glow Border on Hover */}
               <div className="absolute inset-0 pointer-events-none border-2 border-transparent group-hover:border-cyan-500/20 rounded-2xl transition-all duration-500"></div>
