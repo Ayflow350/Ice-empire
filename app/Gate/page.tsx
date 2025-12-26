@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import React, { useState } from "react";
 import { ArrowRight, Zap } from "lucide-react";
@@ -57,7 +58,10 @@ const GenderGateway = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
 
             {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+            <Link
+              href="/Collection"
+              className="absolute inset-0 flex flex-col items-center justify-center z-20"
+            >
               <Zap
                 className={`w-12 h-12 text-cyan-400 mb-4 transition-all duration-300 ${
                   hoveredSide === "male"
@@ -71,7 +75,7 @@ const GenderGateway = () => {
               <span className="mt-4 px-6 py-2 border border-cyan-500/30 text-cyan-400 text-xs tracking-[0.2em] rounded-full opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                 ENTER DOMINION
               </span>
-            </div>
+            </Link>
 
             {/* Electric Border Effect on Hover */}
             <div className="absolute inset-0 border-2 border-transparent group-hover:border-cyan-500/50 rounded-2xl transition-all duration-500"></div>

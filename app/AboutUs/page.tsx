@@ -122,29 +122,8 @@ const BrandStoryPage = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="mt-8 flex justify-end">
-            <button className="group relative px-8 py-4 bg-transparent border border-white/20 hover:border-cyan-400 text-white uppercase tracking-widest text-xs transition-all duration-300 overflow-hidden">
-              <span className="relative z-10 flex items-center gap-3">
-                Explore The Collection{" "}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </span>
-              <div className="absolute inset-0 bg-cyan-900/50 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-300"></div>
-            </button>
-          </div>
         </div>
       </main>
-
-      {/* ================= DECORATIVE GRID FOOTER ================= */}
-      <div className="absolute bottom-0 w-full h-32 border-t border-white/5 bg-[linear-gradient(to_bottom,rgba(0,0,0,0),rgba(6,182,212,0.05))] pointer-events-none">
-        <div
-          className="w-full h-full opacity-20"
-          style={{
-            backgroundImage:
-              "linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px)",
-            backgroundSize: "100px 100%",
-          }}
-        ></div>
-      </div>
     </div>
   );
 };
