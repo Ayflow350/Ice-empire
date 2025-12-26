@@ -18,13 +18,10 @@ const GenderGateway = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-900/20 blur-[100px] rounded-full animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-900/20 blur-[100px] rounded-full animate-pulse delay-700"></div>
       </div>
-
+      <div className="h-20"></div>
       {/* Main Content Container */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 h-[80vh] flex flex-col">
         {/* Header / Brand */}
-        <header className="absolute top-0 left-0 w-full flex justify-between items-center py-6 px-4">
-          <div className="text-xs text-gray-500 tracking-widest">EST. 2025</div>
-        </header>
 
         {/* Central Gateway Title */}
         <div className="text-center mb-12 mt-12">
@@ -132,7 +129,7 @@ const GenderGateway = () => {
         </div>
 
         {/* Footer / Continue Button */}
-        <div className="mt-12 flex justify-center pb-8">
+        {/* <div className="mt-12 flex justify-center pb-8">
           <button className="group relative px-8 py-3 bg-transparent border border-gray-700 hover:border-cyan-400 text-gray-400 hover:text-white uppercase tracking-widest text-xs transition-all duration-300 overflow-hidden">
             <span className="relative z-10 flex items-center gap-2">
               Continue Ahead{" "}
@@ -140,7 +137,7 @@ const GenderGateway = () => {
             </span>
             <div className="absolute inset-0 bg-cyan-900/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Decorative Grid Lines */}

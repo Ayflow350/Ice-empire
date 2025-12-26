@@ -66,16 +66,7 @@ const ContactPage = () => {
       </div>
 
       {/* ================= HEADER ================= */}
-      <header className="relative z-50 w-full flex justify-between items-center py-6 px-6 md:px-12 border-b border-white/5 backdrop-blur-sm sticky top-0 bg-black/80">
-        <div className="text-xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
-          ICEMPIRE
-        </div>
-        <div className="flex items-center gap-2 text-[10px] text-gray-500 tracking-[0.3em] uppercase">
-          <span>System</span> <ChevronRight className="w-3 h-3" />{" "}
-          <span className="text-white">Inquiry</span>
-        </div>
-      </header>
-
+      <div className="h-30"></div>
       {/* ================= MAIN CONTENT ================= */}
       <main className="relative z-10 container mx-auto px-6 py-12 md:py-20">
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-24">

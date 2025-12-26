@@ -227,37 +227,7 @@ const ProductDetailPage = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-50 w-full flex justify-between items-center py-6 px-6 md:px-12 border-b border-white/5 backdrop-blur-sm sticky top-0 bg-black/80">
-        <div className="flex flex-col">
-          <div className="text-xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]">
-            ICEMPIRE
-          </div>
-        </div>
-
-        {/* Cart Indicator */}
-        <div className="relative group cursor-pointer p-2">
-          <ShoppingBag
-            className={`w-6 h-6 text-gray-300 group-hover:text-cyan-400 transition-colors ${
-              isAnimatingCart ? "scale-110" : "scale-100"
-            } duration-200`}
-          />
-          {cartCount > 0 && (
-            <span
-              className={`absolute top-0 right-0 bg-cyan-500 text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)] ${
-                isAnimatingCart ? "animate-ping" : ""
-              }`}
-            >
-              {cartCount}
-            </span>
-          )}
-          {cartCount > 0 && (
-            <span className="absolute top-0 right-0 bg-cyan-500 text-black text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              {cartCount}
-            </span>
-          )}
-        </div>
-      </header>
-
+      <div className="h-30"></div>
       {/* Main Content */}
       <main className="relative z-10 container mx-auto px-4 py-8 md:py-12">
         {/* Return Button */}

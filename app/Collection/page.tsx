@@ -50,24 +50,7 @@ const CollectionPage = () => {
       </div>
 
       {/* ================= HEADER (Synced Style) ================= */}
-      <header className="relative z-50 w-full flex justify-between items-center py-8 px-8 md:px-12 border-b border-white/5 backdrop-blur-sm">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)]">
-            ICEMPIRE
-          </h1>
-          <span className="text-[10px] text-gray-500 tracking-[0.4em] mt-1 uppercase">
-            Dominion Established 2025
-          </span>
-        </div>
-
-        {/* Nav Indicator */}
-        <div className="hidden md:flex items-center gap-4 text-xs font-bold tracking-widest text-gray-500">
-          <span className="text-white">05</span>
-          <span className="h-[1px] w-12 bg-gray-700"></span>
-          <span>COLLECTIONS</span>
-        </div>
-      </header>
-
+      <div className="h-40"></div>
       {/* ================= MAIN CONTENT ================= */}
       <main className="relative z-10 container mx-auto px-6 py-12 md:py-16 flex flex-col h-full">
         {/* Section Title */}
