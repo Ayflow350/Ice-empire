@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Brand Section & Socials */}
           <div className="col-span-1 md:col-span-1">
             <h3 className="text-white text-xl font-bold tracking-wider mb-4">
-              ICE EMPIRE
+              ICEEMPIRE
             </h3>
             <p className="text-sm text-neutral-500 leading-relaxed mb-6">
               Premium leather goods crafted for the modern journey. Quality,
@@ -192,7 +192,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="border-t border-neutral-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-neutral-500">
           <p>
-            &copy; {new Date().getFullYear()} ICE EMPIRE. All rights reserved.
+            &copy; {new Date().getFullYear()} ICEEMPIRE. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link

@@ -8,7 +8,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Handle scroll effect for glassmorphism
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -23,6 +23,7 @@ const Navbar = () => {
     { name: "Exhibition", href: "/exhibition" },
     { name: "Contact", href: "/ContactUs" },
   ];
+
   return (
     <>
       <header
@@ -32,24 +33,32 @@ const Navbar = () => {
             : "bg-transparent border-transparent py-6 md:py-10"
         }`}
       >
-        {/* CHANGED: Removed 'container mx-auto', added 'w-full' and larger padding for spacious look */}
         <div className="w-full px-6 md:px-16 lg:px-24 flex items-center justify-between">
-          {/* ================= LOGO (Far Left) ================= */}
+          {/* ================= LOGO SECTION ================= */}
           <div className="flex-shrink-0">
             <Link
               href="/"
-              className="group flex flex-col cursor-pointer z-50 relative"
+              className="group flex flex-col cursor-pointer z-50 relative items-start"
             >
-              <h1 className="text-2xl font-bold tracking-[0.2em] text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.6)] group-hover:text-white transition-colors duration-300">
+              {/* THE SNOWBALL EFFECT:
+                 1. We use the image as the background.
+                 2. We clip the background to the text.
+                 3. We animate the whole block to 'float'.
+              */}
+              <h1 className="logo-text text-3xl md:text-4xl font-black tracking-[0.2em] relative z-10">
                 ICEMPIRE
               </h1>
-              <span className="text-[10px] text-gray-500 tracking-[0.4em] mt-1 uppercase group-hover:text-cyan-400 transition-colors duration-300">
+
+              {/* Glow behind the text to simulate "Sky Atmosphere" */}
+              <div className="absolute inset-0 bg-cyan-500/20 blur-[20px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
+
+              <span className="text-[10px] text-zinc-500 tracking-[0.4em] mt-2 uppercase pl-1 group-hover:text-white transition-colors duration-500">
                 Dominion Est. 2025
               </span>
             </Link>
           </div>
 
-          {/* ================= DESKTOP NAV (Centered & Airy) ================= */}
+          {/* ================= NAV LINKS ================= */}
           <nav className="hidden md:flex items-center gap-12 lg:gap-16">
             {navLinks.map((link) => (
               <Link
@@ -60,15 +69,13 @@ const Navbar = () => {
                 <span className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-400 group-hover:text-white transition-colors duration-300">
                   {link.name}
                 </span>
-                {/* Center-Out Underline */}
                 <span className="absolute bottom-0 left-1/2 w-0 h-[1px] bg-white group-hover:w-full group-hover:left-0 transition-all duration-300 ease-out"></span>
               </Link>
             ))}
           </nav>
 
-          {/* ================= ACTIONS (Far Right) ================= */}
+          {/* ================= ICONS ================= */}
           <div className="flex items-center gap-8 flex-shrink-0 z-50">
-            {/* Desktop Auth Links */}
             <div className="hidden md:flex items-center gap-8 border-r border-white/20 pr-8 mr-2">
               <Link
                 href="/signin"
@@ -84,20 +91,17 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Cart Button */}
             <button className="relative group">
-              <span className="absolute -inset-2 bg-white/0 group-hover:bg-white/10 rounded-full transition-colors duration-300"></span>
               <ShoppingCart
                 className="w-5 h-5 text-white relative z-10"
                 strokeWidth={1.5}
               />
-              <span className="absolute -top-1 -right-1 h-2 w-2 bg-cyan-400 rounded-full box-shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
+              <span className="absolute -top-1 -right-1 h-2 w-2 bg-slate-200 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"></span>
             </button>
 
-            {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white hover:text-cyan-400 transition-colors"
+              className="md:hidden text-white hover:text-slate-300 transition-colors"
             >
               {isMobileMenuOpen ? (
                 <X strokeWidth={1.5} />
@@ -111,65 +115,71 @@ const Navbar = () => {
 
       {/* ================= MOBILE MENU ================= */}
       <div
-        className={`fixed inset-0 z-40 bg-black transition-transform duration-700 cubic-bezier(0.77, 0, 0.175, 1) ${
+        className={`fixed inset-0 z-40 bg-black transition-transform duration-700 ${
           isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
         }`}
       >
         <div className="h-full flex flex-col justify-center px-8 md:px-12 relative overflow-hidden">
-          {/* Large Background Texture */}
-          <div className="absolute -right-20 top-1/2 -translate-y-1/2 text-[40vh] font-black text-neutral-900 pointer-events-none opacity-50 select-none">
-            ICE
-          </div>
-
-          {/* Main Links */}
+          {/* Mobile menu content same as before */}
           <div className="flex flex-col gap-6 relative z-10">
             {navLinks.map((link, index) => (
               <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="group flex items-center gap-4 text-3xl md:text-5xl font-black uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-neutral-500 to-neutral-700 hover:from-white hover:to-white transition-all duration-500"
+                className="group flex items-center gap-4 text-3xl md:text-5xl font-black uppercase tracking-tighter text-white"
               >
-                <span className="text-sm font-normal text-cyan-500 tracking-widest group-hover:text-white transition-colors">
+                <span className="text-sm font-normal text-neutral-600 tracking-widest group-hover:text-white">
                   0{index + 1}
                 </span>
                 <span>{link.name}</span>
-                <ArrowUpRight className="w-6 h-6 text-neutral-800 group-hover:text-cyan-400 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0 transition-all duration-500" />
               </Link>
             ))}
-
-            {/* Mobile Auth Links */}
-            <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-8 w-full max-w-xs">
-              <Link
-                href="/signin"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-xl text-neutral-400 hover:text-white font-bold tracking-widest uppercase"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/signup"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-xl text-cyan-400 hover:text-white font-bold tracking-widest uppercase flex items-center gap-2"
-              >
-                Sign Up <ArrowUpRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Mobile Footer Info */}
-          <div className="absolute bottom-12 left-8 md:left-12 right-8 flex justify-between items-end border-t border-white/10 pt-8">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] uppercase tracking-widest text-neutral-500">
-                Contact
-              </span>
-              <span className="text-sm text-white font-medium">
-                hello@icempire.com
-              </span>
-            </div>
           </div>
         </div>
       </div>
+
+      {/* ================= CUSTOM STYLES (The Magic) ================= */}
+      <style jsx>{`
+        .logo-text {
+          /* 1. Use the Snowball Image as the text color */
+          background-image: url("/textures/snowball.jpeg"); /* REPLACE WITH YOUR IMAGE PATH */
+
+          /* 2. Position it to show the cratered texture */
+          background-size: cover;
+          background-position: center;
+
+          /* 3. Clip the background to the text */
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          /* 4. Make text transparent so image shows through */
+          color: transparent;
+
+          /* 5. Add slight drop shadow to separate from space background */
+          filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+
+          /* 6. The Suspension Animation */
+          animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0% {
+            transform: translateY(0px);
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+          }
+          50% {
+            transform: translateY(-6px); /* Moves up */
+            filter: drop-shadow(
+              0px 15px 10px rgba(0, 0, 0, 0.3)
+            ); /* Shadow moves away */
+          }
+          100% {
+            transform: translateY(0px);
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+          }
+        }
+      `}</style>
     </>
   );
 };

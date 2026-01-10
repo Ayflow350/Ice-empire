@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Minus,
   Plus,
@@ -8,189 +8,73 @@ import {
   Star,
   ShieldCheck,
   Truck,
-  ChevronRight,
   ArrowLeft,
-  Zap,
   Tag,
   Check,
 } from "lucide-react";
-import Footer from "../components/footer";
+
+// ================= 1. STATIC DATA =================
+
+// Standard RTW Color Palette
+const colors = [
+  { name: "Obsidian Black", id: "black", hex: "#0a0a0a" },
+  { name: "Sienna Dust", id: "brown", hex: "#7B3F00" },
+  { name: "Forest Void", id: "green", hex: "#0F3D2E" },
+  { name: "Amber Signal", id: "yellow", hex: "#C9A227" },
+];
+
+const sizes = ["S", "M", "L", "XL", "XXL"];
+
+// Simplified Variants: One image per color (Ready-To-Wear)
+const productVariants = [
+  { colorId: "black", image: "/products/black/1.jpg" },
+  { colorId: "brown", image: "/products/brown/4.jpg" },
+  { colorId: "green", image: "/products/green/1.jpg" },
+  { colorId: "yellow", image: "/products/yellow/1.jpg" },
+];
+
+const productInfo = {
+  name: "Vanguard Bomber", // Removed "Stealth" to sound more like a standard fashion item
+  collection: "Midnight Series // Drop 01",
+  price: 350.0,
+  originalPrice: 450.0,
+  rating: 4.9,
+  reviews: 128,
+  // Added material to description since it's not selectable
+  description:
+    "Forged for the shadows. This heavyweight architectural piece is crafted from premium full-grain Italian leather. Features reinforced articulated elbows, a water-resistant nano-coating, and our signature magnetic storm-closure system.",
+  thumbnails: [
+    "/products/black/1.jpg",
+    "/products/brown/4.jpg",
+    "/products/green/1.jpg",
+    "/products/yellow/1.jpg",
+  ],
+};
 
 const ProductDetailPage = () => {
-  // ================= 1. DATA DEFINITIONS (The Matrix Strategy) =================
-
-  // A. Define the Available Options for UI Buttons
-  const colors = [
-    { name: "Obsidian Black", id: "black", hex: "#0a0a0a" },
-    { name: "Cyber cyan", id: "cyan", hex: "#7B3F00" },
-    { name: "Plasma green", id: "white", hex: "#0F3D2E" },
-    { name: "Crimson yellow", id: "red", hex: "#C9A227" }, // Added 4th color
-  ];
-
-  const materials = [
-    { name: "Obsidian Leather", id: "leather" },
-    { name: "Void Mesh", id: "mesh" },
-    { name: "Carbon Fiber Weave", id: "carbon" },
-  ];
-
-  const sizes = ["S", "M", "L", "XL", "XXL"];
-
-  // B. Define the "Variants Matrix"
-  // This defines the specific image for every Color + Material combination.
-  // NOTE: I am using distinct placeholder images to demonstrate the change.
-  // In a real app, these would be accurate photos of "cyan Leather", "Red Mesh", etc.
-  const productVariants = [
-    // --- BLACK VARIANTS ---
-    {
-      colorId: "black",
-      materialId: "leather",
-      image: "products/black/1.jpg",
-    },
-    {
-      colorId: "black",
-      materialId: "mesh",
-      image: "products/black/2.jpg",
-    }, // More textured/mesh look
-    {
-      colorId: "black",
-      materialId: "carbon",
-      image: "products/black/1.jpg",
-    }, // Technical/carbon look
-
-    // --- cyan VARIANTS ---
-    {
-      colorId: "cyan",
-      materialId: "leather",
-      image: "products/brown/4.jpg",
-    },
-    {
-      colorId: "cyan",
-      materialId: "mesh",
-      image: "products/brown/2.jpg",
-    }, // Brighter/mesh vibe
-    {
-      colorId: "cyan",
-      materialId: "carbon",
-      image: "products/brown/2.jpg",
-    }, // Sporty/tech vibe
-
-    // --- WHITE VARIANTS ---
-    {
-      colorId: "white",
-      materialId: "leather",
-      image: "products/green/1.jpg",
-    },
-    {
-      colorId: "white",
-      materialId: "mesh",
-      image: "products/green/3.jpg",
-    },
-    {
-      colorId: "white",
-      materialId: "carbon",
-      image: "products/green/2.jpg",
-    },
-
-    // --- RED VARIANTS ---
-    {
-      colorId: "red",
-      materialId: "leather",
-      image: "products/yellow/1.jpg",
-    },
-    {
-      colorId: "red",
-      materialId: "mesh",
-      image: "products/yellow/2.jpg",
-    },
-    {
-      colorId: "red",
-      materialId: "carbon",
-      image: "products/yellow/3.jpg",
-    },
-  ];
-
-  // Base Product Info
-  const productInfo = {
-    name: "Vanguard Stealth Bomber",
-    collection: "Midnight Series // Drop 01",
-    price: 350.0,
-    originalPrice: 450.0,
-    rating: 4.9,
-    reviews: 128,
-    description:
-      "Forged for the shadows. This heavyweight architectural piece features reinforced articulated elbows, a water-resistant nano-coating, and our signature magnetic storm-closure system.",
-    // Thumbnails show different angles, not different variants
-    thumbnails: [
-      "products/black/1.jpg",
-      "products/brown/4.jpg",
-      "products/green/1.jpg",
-      "products/yellow/1.jpg",
-    ],
-  };
-
   // ================= 2. STATE MANAGEMENT =================
-  // Initialize with the first options in the arrays
   const [selectedSize, setSelectedSize] = useState(sizes[2]); // Default L
-  const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [selectedMaterial, setSelectedMaterial] = useState(materials[0]);
+  const [selectedColor, setSelectedColor] = useState(colors[0]); // Default Black
 
-  // The main image is derived from the selected color and material, but can be overridden by thumbnail click
-  const [displayImage, setDisplayImage] = useState(() => {
-    const matchedVariant = productVariants.find(
-      (variant) =>
-        variant.colorId === selectedColor.id &&
-        variant.materialId === selectedMaterial.id
+  // Calculate Image based on Color only
+  const variantImage = useMemo(() => {
+    return (
+      productVariants.find((variant) => variant.colorId === selectedColor.id)
+        ?.image || productVariants[0].image
     );
-    return matchedVariant ? matchedVariant.image : productVariants[0].image;
-  });
+  }, [selectedColor]);
 
+  const [displayImage, setDisplayImage] = useState(variantImage);
+
+  // Sync image when color changes
   useEffect(() => {
-    const matchedVariant = productVariants.find(
-      (variant) =>
-        variant.colorId === selectedColor.id &&
-        variant.materialId === selectedMaterial.id
-    );
-    setDisplayImage(
-      matchedVariant ? matchedVariant.image : productVariants[0].image
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedColor, selectedMaterial]);
+    setDisplayImage(variantImage);
+  }, [variantImage]);
 
   const [quantity, setQuantity] = useState(1);
-  const [cartCount, setCartCount] = useState(0);
-  const [isAnimatingCart, setIsAnimatingCart] = useState(false);
   const [couponCode, setCouponCode] = useState("");
 
-  // ================= 3. LOGIC & EFFECTS =================
-
-  interface ColorOption {
-    name: string;
-    id: string;
-    hex: string;
-  }
-
-  interface MaterialOption {
-    name: string;
-    id: string;
-  }
-
-  interface ProductVariant {
-    colorId: string;
-    materialId: string;
-    image: string;
-  }
-
-  interface ProductInfo {
-    name: string;
-    collection: string;
-    price: number;
-    originalPrice: number;
-    rating: number;
-    reviews: number;
-    description: string;
-    thumbnails: string[];
-  }
-
+  // ================= 3. LOGIC =================
   type QuantityAction = "inc" | "dec";
 
   const handleQuantity = (type: QuantityAction) => {
@@ -199,11 +83,8 @@ const ProductDetailPage = () => {
   };
 
   const addToCart = () => {
-    setCartCount((prev) => prev + quantity);
-    setIsAnimatingCart(true);
-    setTimeout(() => setIsAnimatingCart(false), 300);
     console.log(
-      `Added to cart: Size:${selectedSize}, Color:${selectedColor.name}, Material:${selectedMaterial.name}, Qty:${quantity}`
+      `Added to cart: ${quantity} x ${selectedColor.name} (${selectedSize})`
     );
   };
 
@@ -213,11 +94,11 @@ const ProductDetailPage = () => {
 
   // ================= 4. RENDER =================
   return (
-    <div className="relative min-h-screen w-full bg-black overflow-x-hidden font-sans text-white selection:bg-cyan-500/30">
-      {/* Background Ambience */}
+    <div className="relative min-h-screen w-full bg-black overflow-x-hidden font-sans text-white selection:bg-zinc-500/30">
+      {/* ================= BACKGROUND AMBIENCE ================= */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-black to-black"></div>
-        <div className="absolute top-1/4 right-0 w-[40vw] h-[40vw] bg-cyan-900/10 blur-[120px] rounded-full animate-pulse"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-zinc-900 via-black to-black"></div>
+        <div className="absolute top-1/4 right-0 w-[40vw] h-[40vw] bg-zinc-700/10 blur-[120px] rounded-full animate-pulse"></div>
         <div
           className="absolute inset-0 opacity-[0.15]"
           style={{
@@ -226,18 +107,17 @@ const ProductDetailPage = () => {
         ></div>
       </div>
 
-      {/* Header */}
-      <div className="h-30"></div>
-      {/* Main Content */}
+      <div className="h-24 md:h-32"></div>
+
       <main className="relative z-10 container mx-auto px-4 py-8 md:py-12">
         {/* Return Button */}
         <div className="mb-8">
           <button
             onClick={goBack}
-            className="group inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 hover:border-cyan-500/50 transition-all duration-300"
+            className="group inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/40 transition-all duration-300"
           >
-            <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-cyan-400 transition-colors" />
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4 text-zinc-500 group-hover:text-white transition-colors" />
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500 group-hover:text-white transition-colors">
               Return to Collection
             </span>
           </button>
@@ -246,35 +126,32 @@ const ProductDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* LEFT: IMAGE GALLERY */}
           <div className="flex flex-col gap-6">
-            {/* Main Image Viewer (Dynamic based on state) */}
-            <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 group bg-gray-900">
-              {/* Image fade animation key helps trigger redraw on src change */}
+            <div className="relative w-full aspect-[4/5] rounded-sm overflow-hidden border border-white/10 group bg-zinc-900">
               <img
                 key={displayImage}
                 src={displayImage}
                 alt={productInfo.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 animate-[fadeIn_0.5s_ease-in-out]"
+                className="w-full h-full object-cover grayscale-[0.1] transition-transform duration-700 group-hover:scale-105 animate-[fadeIn_0.5s_ease-in-out]"
               />
 
-              {/* Tech Overlays */}
-              <div className="absolute inset-0 pointer-events-none border border-cyan-500/0 group-hover:border-cyan-500/30 transition-colors duration-500 rounded-2xl"></div>
-              <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-500/50"></div>
-              <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-500/50"></div>
+              {/* Overlays */}
+              <div className="absolute inset-0 pointer-events-none border border-transparent group-hover:border-white/20 transition-colors duration-500 rounded-sm"></div>
 
-              <div className="absolute top-6 right-6 bg-black backdrop-blur-md border border-cyan-500/50 px-3 py-1 text-xs font-bold tracking-widest text-white uppercase rounded-sm">
+              {/* Discount Tag */}
+              <div className="absolute top-6 right-6 bg-white border border-white px-3 py-1 text-xs font-bold tracking-widest text-black uppercase rounded-sm">
                 -22% OFF
               </div>
             </div>
 
-            {/* Thumbnails (Alternative angles) */}
+            {/* Thumbnails */}
             <div className="grid grid-cols-4 gap-4">
               {productInfo.thumbnails.map((img, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setDisplayImage(img)} // Clicking thumbnail temporarily shows that angle
-                  className={`relative aspect-square rounded-lg overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
+                  onClick={() => setDisplayImage(img)}
+                  className={`relative aspect-square rounded-sm overflow-hidden cursor-pointer border-2 transition-all duration-300 ${
                     displayImage === img
-                      ? "border-cyan-500 opacity-100"
+                      ? "border-white opacity-100"
                       : "border-transparent opacity-50 hover:opacity-80"
                   }`}
                 >
@@ -288,15 +165,14 @@ const ProductDetailPage = () => {
             </div>
           </div>
 
-          {/* RIGHT: PRODUCT DETAILS & FORM */}
+          {/* RIGHT: DETAILS */}
           <div className="flex flex-col h-full">
-            {/* Title Block */}
             <div className="mb-8 border-b border-white/10 pb-8">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-bold tracking-[0.2em] text-cyan-500 uppercase">
+                <span className="text-xs font-bold tracking-[0.2em] text-zinc-400 uppercase">
                   {productInfo.collection}
                 </span>
-                <div className="h-px w-8 bg-gradient-to-r from-cyan-500 to-transparent"></div>
+                <div className="h-px w-8 bg-gradient-to-r from-zinc-500 to-transparent"></div>
               </div>
               <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-white mb-4 drop-shadow-lg">
                 {productInfo.name}
@@ -306,21 +182,20 @@ const ProductDetailPage = () => {
                 <span className="text-3xl font-light tracking-wide text-white">
                   ${productInfo.price.toFixed(2)}
                 </span>
-                <span className="text-lg text-gray-500 line-through decoration-red-500/50 mb-1">
+                <span className="text-lg text-zinc-600 line-through decoration-zinc-500/50 mb-1">
                   ${productInfo.originalPrice.toFixed(2)}
                 </span>
-
-                <div className="ml-auto flex items-center gap-1 text-sm text-gray-400">
-                  <Star className="w-4 h-4 text-cyan-400 fill-cyan-400" />
+                <div className="ml-auto flex items-center gap-1 text-sm text-zinc-400">
+                  <Star className="w-4 h-4 text-white fill-white" />
                   <span>{productInfo.rating}</span>
-                  <span className="text-gray-600">
+                  <span className="text-zinc-600">
                     ({productInfo.reviews} Reviews)
                   </span>
                 </div>
               </div>
             </div>
 
-            <p className="text-gray-400 font-light leading-relaxed mb-10 text-sm md:text-base">
+            <p className="text-zinc-400 font-light leading-relaxed mb-10 text-sm md:text-base">
               {productInfo.description}
             </p>
 
@@ -329,10 +204,10 @@ const ProductDetailPage = () => {
               {/* 1. COLOR SELECTION */}
               <div>
                 <div className="flex justify-between mb-3">
-                  <span className="text-xs font-bold tracking-[0.2em] text-gray-300 uppercase">
+                  <span className="text-xs font-bold tracking-[0.2em] text-zinc-300 uppercase">
                     Select Color
                   </span>
-                  <span className="text-xs text-cyan-400 uppercase tracking-widest">
+                  <span className="text-xs text-zinc-400 uppercase tracking-widest">
                     {selectedColor.name}
                   </span>
                 </div>
@@ -343,19 +218,22 @@ const ProductDetailPage = () => {
                       onClick={() => setSelectedColor(color)}
                       className={`group relative w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                         selectedColor.id === color.id
-                          ? "ring-2 ring-cyan-500 ring-offset-2 ring-offset-black scale-110"
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-black scale-110"
                           : "hover:scale-105"
                       }`}
                       style={{ backgroundColor: color.hex }}
                       title={color.name}
                     >
-                      {(color.id === "black" || color.id === "grey") && (
+                      {/* For very dark colors, add a slight border so they are visible against black bg */}
+                      {color.hex === "#0a0a0a" && (
                         <div className="absolute inset-0 rounded-full border border-white/20"></div>
                       )}
+
                       {selectedColor.id === color.id && (
                         <Check
                           className={`w-4 h-4 ${
-                            color.id === "white" ? "text-black" : "text-white"
+                            // Use black checkmark for light colors (if you add white/yellow), white for dark
+                            color.id === "yellow" ? "text-black" : "text-white"
                           }`}
                         />
                       )}
@@ -364,40 +242,13 @@ const ProductDetailPage = () => {
                 </div>
               </div>
 
-              {/* 2. MATERIAL SELECTION */}
+              {/* 2. SIZE SELECTION */}
               <div>
                 <div className="flex justify-between mb-3">
-                  <span className="text-xs font-bold tracking-[0.2em] text-gray-300 uppercase">
-                    Select Material
-                  </span>
-                  <span className="text-xs text-cyan-400 uppercase tracking-widest">
-                    {selectedMaterial.name}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {materials.map((mat) => (
-                    <button
-                      key={mat.id}
-                      onClick={() => setSelectedMaterial(mat)}
-                      className={`py-3 px-2 border rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                        selectedMaterial.id === mat.id
-                          ? "bg-cyan-900/20 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                          : "bg-transparent border-white/10 text-gray-500 hover:border-gray-500 hover:text-white"
-                      }`}
-                    >
-                      {mat.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 3. SIZE SELECTION */}
-              <div>
-                <div className="flex justify-between mb-3">
-                  <span className="text-xs font-bold tracking-[0.2em] text-gray-300 uppercase">
+                  <span className="text-xs font-bold tracking-[0.2em] text-zinc-300 uppercase">
                     Select Size
                   </span>
-                  <span className="text-xs text-gray-500 underline cursor-pointer hover:text-cyan-400">
+                  <span className="text-xs text-zinc-500 underline cursor-pointer hover:text-white">
                     Size Guide
                   </span>
                 </div>
@@ -406,10 +257,10 @@ const ProductDetailPage = () => {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`w-12 h-12 border rounded-lg flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                      className={`w-12 h-12 border rounded-sm flex items-center justify-center text-sm font-bold transition-all duration-300 ${
                         selectedSize === size
                           ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                          : "bg-transparent border-white/10 text-gray-400 hover:border-cyan-500 hover:text-cyan-400"
+                          : "bg-transparent border-white/10 text-zinc-500 hover:border-white hover:text-white"
                       }`}
                     >
                       {size}
@@ -419,30 +270,32 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
-            {/* CART ACTIONS */}
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+            {/* ================= CART ACTIONS ================= */}
+            <div className="bg-white/5 backdrop-blur-md rounded-lg p-6 border border-white/10">
               <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="flex items-center justify-between border border-white/20 rounded-xl px-4 py-3 w-full md:w-32 bg-black/40">
+                {/* Quantity */}
+                <div className="flex items-center justify-between border border-white/20 rounded-sm px-4 py-3 w-full md:w-32 bg-black/40">
                   <button
                     onClick={() => handleQuantity("dec")}
-                    className="text-gray-400 hover:text-white"
+                    className="text-zinc-500 hover:text-white"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="text-white font-mono">{quantity}</span>
                   <button
                     onClick={() => handleQuantity("inc")}
-                    className="text-gray-400 hover:text-white"
+                    className="text-zinc-500 hover:text-white"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
 
+                {/* Add To Cart */}
                 <button
                   onClick={addToCart}
-                  className="relative flex-1 group overflow-hidden bg-cyan-500 rounded-xl py-4 transition-all hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] active:scale-[0.98]"
+                  className="relative flex-1 group overflow-hidden bg-white rounded-sm py-4 transition-all hover:bg-zinc-200 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-[0.98]"
                 >
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                  <div className="absolute inset-0 bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <span className="relative z-10 flex items-center justify-center gap-3 text-black font-black uppercase tracking-widest text-sm">
                     <ShoppingBag className="w-5 h-5" /> Add To Cart - $
                     {(productInfo.price * quantity).toFixed(2)}
@@ -450,18 +303,19 @@ const ProductDetailPage = () => {
                 </button>
               </div>
 
+              {/* Coupon */}
               <div className="flex gap-2">
                 <div className="relative flex-1">
-                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <input
                     type="text"
                     placeholder="ENTER COUPON CODE"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    className="w-full bg-black/50 border border-white/10 rounded-lg py-2 pl-10 pr-4 text-xs tracking-widest text-white placeholder:text-gray-600 focus:outline-none focus:border-cyan-500 transition-colors uppercase"
+                    className="w-full bg-black/50 border border-white/10 rounded-sm py-2 pl-10 pr-4 text-xs tracking-widest text-white placeholder:text-zinc-600 focus:outline-none focus:border-white transition-colors uppercase"
                   />
                 </div>
-                <button className="px-4 py-2 border border-white/20 rounded-lg text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:border-white transition-all">
+                <button className="px-4 py-2 border border-white/20 rounded-sm text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:border-white transition-all">
                   Apply
                 </button>
               </div>
@@ -469,24 +323,24 @@ const ProductDetailPage = () => {
 
             {/* Trust Badges */}
             <div className="mt-8 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 border border-white/5 rounded-xl bg-white/[0.02]">
-                <ShieldCheck className="w-5 h-5 text-gray-400" />
+              <div className="flex items-center gap-3 p-4 border border-white/5 rounded-sm bg-white/[0.02]">
+                <ShieldCheck className="w-5 h-5 text-zinc-500" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-widest text-gray-300">
+                  <span className="text-[10px] uppercase tracking-widest text-zinc-300">
                     Secure Checkout
                   </span>
-                  <span className="text-[10px] text-gray-600">
+                  <span className="text-[10px] text-zinc-600">
                     Encrypted 256-bit
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 border border-white/5 rounded-xl bg-white/[0.02]">
-                <Truck className="w-5 h-5 text-gray-400" />
+              <div className="flex items-center gap-3 p-4 border border-white/5 rounded-sm bg-white/[0.02]">
+                <Truck className="w-5 h-5 text-zinc-500" />
                 <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-widest text-gray-300">
+                  <span className="text-[10px] uppercase tracking-widest text-zinc-300">
                     Fast Shipping
                   </span>
-                  <span className="text-[10px] text-gray-600">
+                  <span className="text-[10px] text-zinc-600">
                     Global Priority
                   </span>
                 </div>
@@ -496,7 +350,7 @@ const ProductDetailPage = () => {
         </div>
       </main>
 
-      {/* Add keyframes for the image fade-in effect in your global CSS or tailwind config */}
+      {/* Animation Styles */}
       <style jsx global>{`
         @keyframes fadeIn {
           from {
