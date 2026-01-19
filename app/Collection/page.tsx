@@ -76,7 +76,7 @@ const CollectionPage = () => {
         </div>
 
         {/* Collections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-auto md:h-[60vh]">
+        <div className="grid grid-cols-1  md:grid-cols-2 lg:grid-cols-3 gap-6 h-auto md:h-[60vh]">
           {collections.map((item) => (
             <div
               key={item.id}

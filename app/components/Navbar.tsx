@@ -46,7 +46,7 @@ const Navbar = () => {
                  3. We animate the whole block to 'float'.
               */}
               <h1 className="logo-text text-3xl md:text-4xl font-black tracking-[0.2em] relative z-10">
-                ICEMPIRE
+                ICEEMPIRE
               </h1>
 
               {/* Glow behind the text to simulate "Sky Atmosphere" */}
