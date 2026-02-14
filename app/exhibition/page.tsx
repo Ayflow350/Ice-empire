@@ -89,15 +89,6 @@ const ExhibitionPage = () => {
         <div className="mb-16 border-b border-white/10 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             {/* ADDED: Return Button */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-zinc-500 hover:text-white transition-colors mb-6 group"
-            >
-              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-xs font-bold tracking-widest uppercase">
-                Return Home
-              </span>
-            </Link>
 
             <div className="flex items-center gap-3 mb-4">
               <div className="w-2 h-2 bg-white animate-pulse rounded-full"></div>
@@ -147,8 +138,8 @@ const ExhibitionPage = () => {
                         item.status === "Open Now"
                           ? "bg-white text-black"
                           : item.status === "Upcoming"
-                          ? "bg-zinc-800 text-zinc-300"
-                          : "bg-transparent border border-white/20 text-zinc-500"
+                            ? "bg-zinc-800 text-zinc-300"
+                            : "bg-transparent border border-white/20 text-zinc-500"
                       }`}
                     >
                       {item.status === "Open Now" && (

@@ -3,7 +3,8 @@ import connectDB from "@/lib/db";
 import Collection from "@/models/Collection";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-// GET: Fetch all collections
+// 1. GET: Fetch all collections
+// Corresponds to: collectionApi.getAll()
 export async function GET() {
   try {
     await connectDB();
@@ -12,18 +13,19 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch collections" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// POST: Create a new collection
+// 2. POST: Create a new collection
+// Corresponds to: collectionApi.create(formData)
 export async function POST(req: Request) {
   try {
     await connectDB();
     const formData = await req.formData();
 
-    // 1. Extract Text Data
+    // Extract Text Data
     const title = formData.get("title") as string;
     const subtitle = formData.get("subtitle") as string;
     const dropCode = formData.get("dropCode") as string;
@@ -34,23 +36,23 @@ export async function POST(req: Request) {
     if (!title || !dropCode || !imageFile) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // 2. Upload Image
+    // Upload Image
     const imageUrl = await uploadToCloudinary(
       imageFile,
-      "clothing-store/collections"
+      "clothing-store/collections",
     );
 
-    // 3. Create Record
+    // Create Record
     const newCollection = await Collection.create({
       title,
       subtitle,
       dropCode,
-      status,
-      releaseDate: new Date(releaseDate),
+      status: status || "Draft",
+      releaseDate: releaseDate ? new Date(releaseDate) : new Date(),
       imageUrl,
       itemCount: 0,
     });
@@ -60,7 +62,7 @@ export async function POST(req: Request) {
     console.error("Collection Create Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

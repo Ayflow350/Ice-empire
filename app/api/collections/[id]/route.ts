@@ -1,66 +1,68 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Collection from "@/models/Collection";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 
-// GET: Fetch all collections
-export async function GET() {
+// 3. DELETE: Remove a collection
+// Corresponds to: collectionApi.delete(id)
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     await connectDB();
-    const collections = await Collection.find().sort({ createdAt: -1 });
-    return NextResponse.json(collections);
+    const { id } = await params;
+
+    const deletedCollection = await Collection.findByIdAndDelete(id);
+
+    if (!deletedCollection) {
+      return NextResponse.json(
+        { error: "Collection not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ message: "Collection deleted successfully" });
   } catch (error) {
+    console.error("Delete Error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch collections" },
-      { status: 500 }
+      { error: "Failed to delete collection" },
+      { status: 500 },
     );
   }
 }
 
-// POST: Create a new collection
-export async function POST(req: Request) {
+// 4. PATCH: Update a collection
+// Corresponds to: collectionApi.update(id, data)
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     await connectDB();
-    const formData = await req.formData();
+    const { id } = await params;
 
-    // 1. Extract Text Data
-    const title = formData.get("title") as string;
-    const subtitle = formData.get("subtitle") as string;
-    const dropCode = formData.get("dropCode") as string;
-    const status = formData.get("status") as string;
-    const releaseDate = formData.get("releaseDate") as string;
-    const imageFile = formData.get("image") as File | null;
+    // Based on your client API, this receives JSON, not FormData
+    const body = await req.json();
 
-    if (!title || !dropCode || !imageFile) {
+    const updatedCollection = await Collection.findByIdAndUpdate(
+      id,
+      body,
+      { new: true }, // Return the updated document
+    );
+
+    if (!updatedCollection) {
       return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+        { error: "Collection not found" },
+        { status: 404 },
       );
     }
 
-    // 2. Upload Image
-    const imageUrl = await uploadToCloudinary(
-      imageFile,
-      "clothing-store/collections"
-    );
-
-    // 3. Create Record
-    const newCollection = await Collection.create({
-      title,
-      subtitle,
-      dropCode,
-      status,
-      releaseDate: new Date(releaseDate),
-      imageUrl,
-      itemCount: 0,
-    });
-
-    return NextResponse.json(newCollection, { status: 201 });
+    return NextResponse.json(updatedCollection);
   } catch (error) {
-    console.error("Collection Create Error:", error);
+    console.error("Update Error:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
+      { error: "Failed to update collection" },
+      { status: 500 },
     );
   }
 }

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
-import Product from "@/models/Products"; // Ensure this matches your filename
+import Product from "@/models/Products"; // Ensure filename matches
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-// --- 1. Strong Typing for Incoming Data ---
+// --- 1. Strong Typing ---
 interface IncomingVariant {
   id: string;
   colorName: string;
@@ -22,7 +22,7 @@ interface IncomingProduct {
   variants: IncomingVariant[];
 }
 
-// --- 2. Helper Function: Slug Generator ---
+// --- 2. Helper: Slug Generator ---
 const generateSlug = (name: string): string => {
   return name
     .toLowerCase()
@@ -31,6 +31,27 @@ const generateSlug = (name: string): string => {
     .replace(/^-|-$/g, "");
 };
 
+// ==================================================================
+// METHOD 1: GET (Fetch All Products) -> MISSING IN YOUR SNIPPET
+// ==================================================================
+export async function GET() {
+  try {
+    await connectDB();
+    // Sort by newest first
+    const products = await Product.find({}).sort({ createdAt: -1 });
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error("Fetch Products Error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch products" },
+      { status: 500 },
+    );
+  }
+}
+
+// ==================================================================
+// METHOD 2: POST (Create Product)
+// ==================================================================
 export async function POST(req: Request) {
   try {
     await connectDB();
@@ -54,7 +75,7 @@ export async function POST(req: Request) {
         if (imageFile && imageFile instanceof File) {
           finalImageUrl = await uploadToCloudinary(
             imageFile,
-            "clothing-store/products"
+            "clothing-store/products",
           );
         }
 
@@ -66,13 +87,13 @@ export async function POST(req: Request) {
           imageUrl: finalImageUrl || undefined,
           stock: Number(variant.stock),
         };
-      })
+      }),
     );
 
     // 3. Logic: Calculate Total Stock & Slug
     const totalStock = variantsWithImages.reduce(
       (sum: number, v) => sum + v.stock,
-      0
+      0,
     );
 
     const slug = generateSlug(data.name);
@@ -81,7 +102,7 @@ export async function POST(req: Request) {
     const newProduct = await Product.create({
       name: data.name,
       slug: slug,
-      collectionName: data.collection,
+      collectionName: data.collection, // Maps "collection" from frontend to "collectionName" in DB
       description: data.description,
       price: Number(data.price),
       originalPrice: data.originalPrice
@@ -95,10 +116,8 @@ export async function POST(req: Request) {
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error: unknown) {
     console.error("Create Product Error:", error);
-
     const errorMessage =
       error instanceof Error ? error.message : "Failed to create product";
-
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

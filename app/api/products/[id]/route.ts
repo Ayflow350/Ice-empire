@@ -4,13 +4,13 @@ import Product, { IProduct, IVariant } from "@/models/Products";
 import { sendLowStockAlert } from "@/lib/email";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-// --- 1. Define Types for Incoming Data ---
+// --- 1. Define Types ---
 interface VariantPayload {
   id?: string;
   colorName: string;
   colorHex: string;
-  imageUrl?: string; // From DB/Cloudinary
-  image?: string | null; // From Frontend state
+  imageUrl?: string;
+  image?: string | null;
   stock: number;
 }
 
@@ -22,9 +22,10 @@ interface UpdatePayload {
   isArchived?: boolean;
   variants?: VariantPayload[];
   collection?: string;
+  sizes?: string[];
 }
 
-// --- 2. Helper Functions (Consistent with POST) ---
+// --- 2. Helper Functions ---
 const generateSlug = (name: string): string => {
   return name
     .toLowerCase()
@@ -37,16 +38,18 @@ const calculateTotalStock = (variants: VariantPayload[]): number => {
   return variants.reduce((acc, v) => acc + Number(v.stock || 0), 0);
 };
 
-// --- API ROUTES ---
-
-// GET: Fetch Single Product
+// ==================================================================
+// METHOD 1: GET (Fetch Single Product)
+// ==================================================================
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }, // FIX: Promise type
 ) {
   try {
     await connectDB();
-    const product = await Product.findById<IProduct>(params.id);
+    const { id } = await params; // FIX: Await params
+
+    const product = await Product.findById<IProduct>(id);
 
     if (!product) {
       return NextResponse.json({ error: "Not Found" }, { status: 404 });
@@ -57,14 +60,18 @@ export async function GET(
   }
 }
 
-// DELETE: Hard Delete
+// ==================================================================
+// METHOD 2: DELETE (Remove Product)
+// ==================================================================
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }, // FIX: Promise type
 ) {
   try {
     await connectDB();
-    const deletedProduct = await Product.findByIdAndDelete(params.id);
+    const { id } = await params; // FIX: Await params
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
 
     if (!deletedProduct) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
@@ -75,22 +82,25 @@ export async function DELETE(
   }
 }
 
-// PATCH: Update Product
+// ==================================================================
+// METHOD 3: PATCH (Update or Archive Product)
+// ==================================================================
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }, // FIX: Promise type
 ) {
   try {
     await connectDB();
+    const { id } = await params; // FIX: Await params
 
     const contentType = req.headers.get("content-type") || "";
     let updateData: UpdatePayload = {};
 
-    // --- SCENARIO A: JSON UPDATE ---
+    // --- SCENARIO A: JSON UPDATE (e.g. Archive Toggle) ---
     if (contentType.includes("application/json")) {
       updateData = (await req.json()) as UpdatePayload;
     }
-    // --- SCENARIO B: FORM DATA (Multipart) ---
+    // --- SCENARIO B: FORM DATA (Full Edit with Images) ---
     else if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       const payloadString = formData.get("payload") as string;
@@ -110,25 +120,24 @@ export async function PATCH(
               if (imageFile && imageFile instanceof File) {
                 const cloudUrl = await uploadToCloudinary(
                   imageFile,
-                  "clothing-store/products"
+                  "clothing-store/products",
                 );
                 return { ...variant, imageUrl: cloudUrl };
               }
 
               // If no new file, ensure imageUrl falls back to existing image string
-              // pass explicit undefined if null to match Mongoose types
               return {
                 ...variant,
                 imageUrl: variant.image || variant.imageUrl || undefined,
               };
-            }
-          )
+            },
+          ),
         );
       }
     }
 
     // 1. Fetch Existing Product
-    const product = await Product.findById<IProduct>(params.id);
+    const product = await Product.findById<IProduct>(id); // FIX: Use unwrapped id
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
@@ -136,7 +145,11 @@ export async function PATCH(
     // 2. Apply Updates & Manual Calculations
     if (updateData.name) {
       product.name = updateData.name;
-      product.slug = generateSlug(updateData.name); // Manual Slug Update
+      product.slug = generateSlug(updateData.name);
+    }
+
+    if (updateData.collection) {
+      product.collectionName = updateData.collection;
     }
 
     if (updateData.price !== undefined)
@@ -144,15 +157,18 @@ export async function PATCH(
     if (updateData.originalPrice !== undefined)
       product.originalPrice = Number(updateData.originalPrice);
     if (updateData.description) product.description = updateData.description;
-    if (updateData.isArchived !== undefined)
+    if (updateData.sizes) product.sizes = updateData.sizes;
+
+    // Explicit boolean check for Archive
+    if (updateData.isArchived !== undefined) {
       product.isArchived = updateData.isArchived;
+    }
 
     // Handle Variants & Total Stock
     if (updateData.variants) {
-      // We need to cast the payload variants to match the Mongoose IVariant structure
-      // This is safe because we processed images above
+      // Cast payload variants to match Mongoose IVariant structure
       product.variants = updateData.variants as unknown as IVariant[];
-      product.totalStock = calculateTotalStock(updateData.variants); // Manual Stock Recalc
+      product.totalStock = calculateTotalStock(updateData.variants);
     }
 
     // 3. Save to DB
@@ -162,11 +178,15 @@ export async function PATCH(
     if (savedProduct.variants) {
       savedProduct.variants.forEach((variant: IVariant) => {
         if (variant.stock <= 5) {
-          sendLowStockAlert(
-            savedProduct.name,
-            variant.colorName,
-            variant.stock
-          );
+          try {
+            sendLowStockAlert(
+              savedProduct.name,
+              variant.colorName,
+              variant.stock,
+            );
+          } catch (e) {
+            console.error("Email alert failed", e);
+          }
         }
       });
     }

@@ -76,7 +76,7 @@ const BrandStoryPage = () => {
                 <p>
                   We believe that style is a weapon. It commands attention,
                   demands respect, and silences the noise. Our collections are
-                  born from the chaotic beauty of the storm—sharp, electric, and
+                  born from the chaotic beauty of the storm sharp, electric, and
                   undeniable.
                 </p>
                 <p>

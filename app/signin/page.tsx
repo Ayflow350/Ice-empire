@@ -1,10 +1,74 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowRight,
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { authApi } from "@/lib/api/auth";
+import { useAuth } from "../context/AuthContext";
 
 export default function SignIn() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
+
+  // 1. State
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // 2. Check for "registered=true" in URL
+  useEffect(() => {
+    if (searchParams.get("registered")) {
+      setSuccessMsg("Account established. Please identify yourself.");
+    }
+  }, [searchParams]);
+
+  // 3. Input Handler
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null);
+  };
+
+  // 4. Submit Logic
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await authApi.signin({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Update Global Context
+      login(data.user);
+
+      // Role-based Redirect
+      if (data.user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/shop"); // Or "/"
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Access denied. Verify credentials.");
+      } else {
+        setError("Access denied. Verify credentials.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex bg-neutral-950 text-white font-sans selection:bg-white/20">
       {/* ================= LEFT: THE ATMOSPHERE ================= */}
@@ -56,11 +120,22 @@ export default function SignIn() {
             </p>
           </div>
 
+          {/* Success Notification (From Signup) */}
+          {successMsg && (
+            <div className="mb-8 p-4 bg-green-900/10 border border-green-900/30 flex items-center gap-3 text-green-400 text-xs tracking-wide">
+              <CheckCircle2 size={16} />
+              {successMsg}
+            </div>
+          )}
+
           {/* Form */}
-          <form className="space-y-10">
+          <form onSubmit={handleSubmit} className="space-y-10">
             {/* Input: Email */}
             <div className="relative group">
               <input
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 type="email"
                 required
                 className="peer w-full bg-transparent border-b border-neutral-800 py-4 text-sm tracking-widest text-white placeholder-transparent focus:outline-none focus:border-white transition-all duration-500"
@@ -79,9 +154,12 @@ export default function SignIn() {
             {/* Input: Password */}
             <div className="relative group">
               <input
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
                 type="password"
                 required
-                className="peer w-full bg-transparent border-b border-neutral-800  py-4 text-sm tracking-widest text-white placeholder-transparent focus:outline-none focus:border-white transition-all duration-500"
+                className="peer w-full bg-transparent border-b border-neutral-800 py-4 text-sm tracking-widest text-white placeholder-transparent focus:outline-none focus:border-white transition-all duration-500"
                 placeholder="Password"
               />
               <label
@@ -95,7 +173,15 @@ export default function SignIn() {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end">
+            <div className="flex justify-between items-center">
+              {error ? (
+                <div className="flex items-center gap-2 text-red-400 text-[10px] tracking-wide">
+                  <AlertCircle size={12} />
+                  {error}
+                </div>
+              ) : (
+                <div></div>
+              )}
               <Link
                 href="#"
                 className="text-[10px] uppercase tracking-widest text-neutral-600 hover:text-white transition-colors"
@@ -105,10 +191,19 @@ export default function SignIn() {
             </div>
 
             {/* Submit Button */}
-            <button className="w-full relative overflow-hidden group bg-white text-black py-5 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-neutral-200">
+            <button
+              disabled={isLoading}
+              className="w-full relative overflow-hidden group bg-white text-black py-5 text-xs font-bold tracking-[0.25em] uppercase transition-all hover:bg-neutral-200 disabled:opacity-70 disabled:cursor-not-allowed"
+            >
               <span className="relative z-10 flex items-center justify-center gap-4">
-                Enter
-                <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-2" />
+                {isLoading ? (
+                  <Loader2 className="animate-spin w-4 h-4" />
+                ) : (
+                  <>
+                    Enter
+                    <ArrowRight className="w-4 h-4 transition-transform duration-500 group-hover:translate-x-2" />
+                  </>
+                )}
               </span>
             </button>
           </form>
@@ -118,7 +213,7 @@ export default function SignIn() {
             <p className="text-xs text-neutral-600 font-light tracking-wide">
               No account?{" "}
               <Link
-                href="/signup"
+                href="/auth/signup"
                 className="text-white hover:text-neutral-300 transition-colors ml-2 font-normal border-b border-white/20 pb-0.5 hover:border-white"
               >
                 Create an account
