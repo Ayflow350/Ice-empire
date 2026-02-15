@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   MapPin,
@@ -10,16 +10,13 @@ import {
   CheckCircle,
   XCircle,
   ShieldCheck,
-  ShoppingBag,
 } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { paymentApi, ShippingDetails } from "@/lib/api/payment";
 
-// Define the steps of the checkout process
+// --- TYPES ---
 type CheckoutStep = "SHIPPING" | "REVIEW" | "VERIFYING" | "SUCCESS" | "FAILED";
 
-// --- RENDER: ORDER SUMMARY SIDEBAR ---
-// Define a CartItem type based on your cart structure
 type CartItem = {
   uniqueId: string;
   name: string;
@@ -30,25 +27,24 @@ type CartItem = {
   quantity: number;
 };
 
-type OrderSummaryProps = {
-  cartItems: CartItem[];
-  cartTotal: number;
-  SHIPPING_COST: number;
-  GRAND_TOTAL: number;
-};
-
-const OrderSummary: React.FC<OrderSummaryProps> = ({
+// --- SUB-COMPONENT: ORDER SUMMARY ---
+const OrderSummary = ({
   cartItems,
   cartTotal,
-  SHIPPING_COST,
-  GRAND_TOTAL,
+  shippingCost,
+  grandTotal,
+}: {
+  cartItems: CartItem[];
+  cartTotal: number;
+  shippingCost: number;
+  grandTotal: number;
 }) => (
   <div className="bg-zinc-900/30 border border-white/10 p-6 rounded-sm h-fit sticky top-24">
     <h3 className="text-sm font-bold uppercase tracking-widest mb-6 border-b border-white/10 pb-4">
       Order Summary
     </h3>
     <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar mb-6">
-      {cartItems.map((item: CartItem) => (
+      {cartItems.map((item) => (
         <div key={item.uniqueId} className="flex gap-4">
           <div className="w-12 h-16 bg-black border border-white/10 relative shrink-0">
             {item.image && (
@@ -58,7 +54,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                 className="w-full h-full object-cover opacity-80"
               />
             )}
-            <span className="absolute -top-2 -right-2 w-4 h-4 bg-zinc-700 text-[10px] flex items-center justify-center rounded-full text-white">
+            <span className="absolute -top-2 -right-2 w-4 h-4 bg-zinc-700 text-[10px] flex items-center justify-center rounded-full text-white border border-black">
               {item.quantity}
             </span>
           </div>
@@ -83,27 +79,33 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       </div>
       <div className="flex justify-between">
         <span>Shipping</span>
-        <span>${SHIPPING_COST.toLocaleString()}</span>
+        <span>${shippingCost.toLocaleString()}</span>
       </div>
     </div>
     <div className="flex justify-between items-end border-t border-white/10 pt-4 mt-4">
       <span className="text-sm font-bold uppercase text-white">Total</span>
       <span className="text-xl font-mono text-white">
-        ${GRAND_TOTAL.toLocaleString()}
+        ${grandTotal.toLocaleString()}
       </span>
     </div>
   </div>
 );
 
-export default function CheckoutPage() {
+// --- MAIN CONTENT COMPONENT ---
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cartItems, cartTotal, clearCart } = useCart();
 
+  // 1. Initialize Step based on URL (prevents hydration mismatch/sync errors)
+  const initialStep: CheckoutStep = searchParams.get("reference")
+    ? "VERIFYING"
+    : "SHIPPING";
+
   // --- STATE ---
-  const [step, setStep] = useState<CheckoutStep>("SHIPPING");
+  const [step, setStep] = useState<CheckoutStep>(initialStep);
   const [isProcessing, setIsProcessing] = useState(false);
-  const verifyAttempted = useRef(false); // Prevent double-fire in React Strict Mode
+  const verifyAttempted = useRef(false);
 
   // Shipping State
   const [shipping, setShipping] = useState<ShippingDetails>({
@@ -117,26 +119,21 @@ export default function CheckoutPage() {
   });
 
   // Calculate Totals
-  const SHIPPING_COST = 2500; // Flat rate
+  const SHIPPING_COST = 2500;
   const GRAND_TOTAL = cartTotal + SHIPPING_COST;
 
-  // =========================================================
-  // 1. LOGIC: HANDLE RETURN FROM PAYSTACK (VERIFICATION)
-  // =========================================================
+  // --- EFFECT: HANDLE PAYSTACK RETURN ---
   useEffect(() => {
     const reference = searchParams.get("reference");
 
-    // If URL has a reference, we are returning from Paystack
     if (reference && !verifyAttempted.current) {
       verifyAttempted.current = true;
 
       const verifyTransaction = async () => {
-        setStep("VERIFYING");
         try {
           const res = await paymentApi.verify(reference);
-
           if (res.status === "success") {
-            clearCart(); // Clear the cart context
+            clearCart();
             setStep("SUCCESS");
           } else {
             setStep("FAILED");
@@ -149,20 +146,9 @@ export default function CheckoutPage() {
 
       verifyTransaction();
     }
-    // If no reference and cart is empty, kick user out (unless they just succeeded)
-    else if (
-      cartItems.length === 0 &&
-      step !== "SUCCESS" &&
-      step !== "VERIFYING"
-    ) {
-      router.push("/Collection"); // Or shop page
-    }
-  }, [searchParams, cartItems, clearCart, router, step]);
+  }, [searchParams, clearCart]);
 
-  // =========================================================
-  // 2. HANDLERS
-  // =========================================================
-
+  // --- HANDLERS ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShipping({ ...shipping, [e.target.name]: e.target.value });
   };
@@ -185,7 +171,6 @@ export default function CheckoutPage() {
   const handlePaystackInit = async () => {
     setIsProcessing(true);
     try {
-      // Initialize payment with backend
       const response = await paymentApi.initialize({
         email: shipping.email,
         amount: GRAND_TOTAL,
@@ -193,7 +178,6 @@ export default function CheckoutPage() {
         shippingAddress: shipping,
       });
 
-      // Redirect to Paystack
       if (response.data?.link) {
         window.location.href = response.data.link;
       } else {
@@ -207,11 +191,8 @@ export default function CheckoutPage() {
     }
   };
 
-  // =========================================================
-  // 3. RENDER HELPERS
-  // =========================================================
+  // --- RENDER STATES ---
 
-  // --- RENDER: LOADING / VERIFYING STATE ---
   if (step === "VERIFYING") {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-4">
@@ -226,7 +207,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // --- RENDER: SUCCESS STATE ---
   if (step === "SUCCESS") {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-6 p-6">
@@ -248,7 +228,7 @@ export default function CheckoutPage() {
         </div>
         <button
           onClick={() => router.push("/")}
-          className="bg-white text-black px-8 py-3 text-xs font-bold uppercase tracking-widest"
+          className="bg-white text-black px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors"
         >
           Return to Archives
         </button>
@@ -256,7 +236,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // --- RENDER: FAILED STATE ---
   if (step === "FAILED") {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-6 p-6">
@@ -267,7 +246,7 @@ export default function CheckoutPage() {
         <p className="text-zinc-400">We could not verify your transaction.</p>
         <button
           onClick={() => (window.location.href = "/checkout")}
-          className="border border-white text-white px-8 py-3 text-xs font-bold uppercase tracking-widest"
+          className="border border-white text-white px-8 py-3 text-xs font-bold uppercase tracking-widest hover:bg-white hover:text-black transition-colors"
         >
           Try Again
         </button>
@@ -275,9 +254,7 @@ export default function CheckoutPage() {
     );
   }
 
-  // =========================================================
-  // 4. MAIN RENDER (SHIPPING & PAYMENT FORMS)
-  // =========================================================
+  // --- DEFAULT RENDER ---
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-zinc-500/30">
       {/* Header */}
@@ -315,72 +292,74 @@ export default function CheckoutPage() {
             {step === "SHIPPING" && (
               <form
                 onSubmit={handleGoToPayment}
-                className="animate-in fade-in slide-in-from-left-4 duration-500"
+                className="animate-in fade-in slide-in-from-left-4 duration-500 space-y-6"
               >
                 <h2 className="text-xl font-bold uppercase mb-6 flex items-center gap-3">
                   <MapPin className="text-zinc-500" /> Shipping Details
                 </h2>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input
-                      required
-                      name="fullName"
-                      value={shipping.fullName}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      placeholder="FULL NAME"
-                    />
-                    <input
-                      required
-                      type="email"
-                      name="email"
-                      value={shipping.email}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      placeholder="EMAIL"
-                    />
-                  </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <input
                     required
-                    name="address"
-                    value={shipping.address}
+                    name="fullName"
+                    value={shipping.fullName}
                     onChange={handleInputChange}
-                    className="input-field w-full"
-                    placeholder="ADDRESS"
+                    className="input-field"
+                    placeholder="FULL NAME"
                   />
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    <input
-                      required
-                      name="city"
-                      value={shipping.city}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      placeholder="CITY"
-                    />
-                    <input
-                      required
-                      name="state"
-                      value={shipping.state}
-                      onChange={handleInputChange}
-                      className="input-field"
-                      placeholder="STATE"
-                    />
-                    <input
-                      required
-                      name="phone"
-                      value={shipping.phone}
-                      onChange={handleInputChange}
-                      className="input-field col-span-2 md:col-span-1"
-                      placeholder="PHONE"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors mt-4"
-                  >
-                    Continue to Payment
-                  </button>
+                  <input
+                    required
+                    type="email"
+                    name="email"
+                    value={shipping.email}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="EMAIL"
+                  />
                 </div>
+
+                <input
+                  required
+                  name="address"
+                  value={shipping.address}
+                  onChange={handleInputChange}
+                  className="input-field w-full"
+                  placeholder="ADDRESS"
+                />
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  <input
+                    required
+                    name="city"
+                    value={shipping.city}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="CITY"
+                  />
+                  <input
+                    required
+                    name="state"
+                    value={shipping.state}
+                    onChange={handleInputChange}
+                    className="input-field"
+                    placeholder="STATE"
+                  />
+                  <input
+                    required
+                    name="phone"
+                    value={shipping.phone}
+                    onChange={handleInputChange}
+                    className="input-field col-span-2 md:col-span-1"
+                    placeholder="PHONE"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-zinc-200 transition-colors mt-4"
+                >
+                  Continue to Payment
+                </button>
               </form>
             )}
 
@@ -422,7 +401,7 @@ export default function CheckoutPage() {
                         <Loader2 className="animate-spin" /> Processing...
                       </>
                     ) : (
-                      `Pay$${GRAND_TOTAL.toLocaleString()}`
+                      `Pay $${GRAND_TOTAL.toLocaleString()}`
                     )}
                   </button>
                   <p className="text-[10px] text-zinc-500 text-center mt-4">
@@ -438,8 +417,8 @@ export default function CheckoutPage() {
             <OrderSummary
               cartItems={cartItems}
               cartTotal={cartTotal}
-              SHIPPING_COST={SHIPPING_COST}
-              GRAND_TOTAL={GRAND_TOTAL}
+              shippingCost={SHIPPING_COST}
+              grandTotal={GRAND_TOTAL}
             />
           </div>
         </div>
@@ -448,7 +427,7 @@ export default function CheckoutPage() {
       <style jsx>{`
         .input-field {
           width: 100%;
-          background-color: #18181b; /* zinc-900 */
+          background-color: #18181b;
           border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 1rem;
           font-size: 0.875rem;
@@ -468,5 +447,20 @@ export default function CheckoutPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+// --- EXPORT WITH SUSPENSE ---
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <Loader2 className="animate-spin w-10 h-10 text-zinc-500" />
+        </div>
+      }
+    >
+      <CheckoutContent />
+    </Suspense>
   );
 }

@@ -33,7 +33,7 @@ export default function AdminCollectionsPage() {
 
   // Track which item we are editing (null = creating new)
   const [editingCollection, setEditingCollection] = useState<Collection | null>(
-    null
+    null,
   );
 
   // 1. FETCH DATA
@@ -70,7 +70,24 @@ export default function AdminCollectionsPage() {
     try {
       if (editingCollection) {
         // --- UPDATE MODE ---
-        await collectionApi.update(editingCollection._id, formData);
+        // Convert FormData to plain object for update if API expects Partial<Collection>
+        const updateObj: Partial<Collection> = {
+          title: formData.get("title") as string,
+          subtitle: formData.get("subtitle") as string,
+          dropCode: formData.get("dropCode") as string,
+          status: formData.get("status") as
+            | "Active"
+            | "Draft"
+            | "Archived"
+            | undefined,
+          releaseDate: formData.get("releaseDate") as string,
+        };
+        // Only add image if present
+        const image = formData.get("image");
+        if (image && image instanceof File && image.size > 0) {
+          (updateObj as Partial<Collection> & { image?: File }).image = image;
+        }
+        await collectionApi.update(editingCollection._id, updateObj);
       } else {
         // --- CREATE MODE ---
         await collectionApi.create(formData);
@@ -79,8 +96,10 @@ export default function AdminCollectionsPage() {
       // Refresh and close
       await loadCollections();
       setIsOverlayOpen(false);
-    } catch (error: any) {
-      alert(`Operation failed: ${error.message || "Unknown error"}`);
+    } catch (error: unknown) {
+      alert(
+        `Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   };
 
@@ -102,11 +121,13 @@ export default function AdminCollectionsPage() {
       const newStatus = currentStatus === "Archived" ? "Active" : "Archived";
 
       // We use a partial object here, API handles JSON update
-      await collectionApi.update(id, { status: newStatus } as any);
+      await collectionApi.update(id, {
+        status: newStatus as "Active" | "Draft" | "Archived",
+      });
 
       // Optimistic Update
       setCollections((prev) =>
-        prev.map((c) => (c._id === id ? { ...c, status: newStatus } : c))
+        prev.map((c) => (c._id === id ? { ...c, status: newStatus } : c)),
       );
     } catch (error) {
       alert("Failed to update status.");
@@ -481,8 +502,8 @@ const CollectionForm = ({
               ? "Updating..."
               : "Launching..."
             : initialData
-            ? "Update Drop"
-            : "Launch Drop"}
+              ? "Update Drop"
+              : "Launch Drop"}
         </button>
       </div>
     </form>

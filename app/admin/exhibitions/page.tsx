@@ -10,7 +10,6 @@ import {
   Calendar,
   Globe,
   Image as ImageIcon,
-  MoreHorizontal,
   Trash2,
   UploadCloud,
   Loader2,
@@ -31,8 +30,19 @@ export type Exhibition = {
   description: string;
 };
 
-// --- PORTAL COMPONENT ---
+// --- FIXED PORTAL COMPONENT ---
 function Portal({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+
+  // useEffect only runs in the browser, ensuring document exists
+  useEffect(() => {
+    const rafId = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
+  // Return null on the server to prevent the crash
+  if (!mounted) return null;
+
   return createPortal(children, document.body);
 }
 
@@ -344,7 +354,10 @@ const ExhibitionForm = ({ onSubmit, onCancel }: ExhibitionFormProps) => {
             <select
               className="w-full bg-[#151515] border border-[#333] rounded-lg p-3 text-sm text-[#E5E5E5] outline-none"
               onChange={(e) =>
-                setForm({ ...form, status: e.target.value as ExhibitionStatus })
+                setForm({
+                  ...form,
+                  status: e.target.value as ExhibitionStatus,
+                })
               }
               value={form.status}
             >
