@@ -128,7 +128,7 @@ export default function ShopPage() {
                         {product.collectionName || "General"}
                       </span>
                       <span className="text-xs font-mono text-zinc-300">
-                        ₦{product.price.toLocaleString()}
+                        ${product.price.toLocaleString()}
                       </span>
                     </div>
                   </div>
