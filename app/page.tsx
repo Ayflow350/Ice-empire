@@ -25,15 +25,6 @@ const TriggerStorm = () => {
 
       {/* 3. Main Content Container */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full w-full px-4 text-center">
-        {/* Main Headline */}
-        <h1
-          className="text-white font-bold uppercase tracking-tighter 
-                       text-5xl md:text-7xl lg:text-8xl 
-                       drop-shadow-lg mb-8"
-        >
-          Trigger The Storm
-        </h1>
-
         {/* Action Button */}
         <Link
           href="/Gate"

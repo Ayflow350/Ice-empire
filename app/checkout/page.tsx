@@ -258,17 +258,7 @@ function CheckoutContent() {
   return (
     <div className="min-h-screen bg-black text-white font-sans selection:bg-zinc-500/30">
       {/* Header */}
-      <div className="border-b border-white/10 sticky top-0 bg-black/90 backdrop-blur-md z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <h1 className="text-xl font-black tracking-[0.2em] uppercase">
-            ICEEMPIRE
-          </h1>
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500">
-            <ShieldCheck size={14} /> Secure Checkout
-          </div>
-        </div>
-      </div>
-
+      <div className="h-40"></div>
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* LEFT: Forms */}
