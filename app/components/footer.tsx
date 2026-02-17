@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Brand Section & Socials */}
           <div className="col-span-1 md:col-span-1">
             <h3 className="text-white text-xl font-bold tracking-wider mb-4">
-              ICEEMPIRE
+              ICEMPIRE
             </h3>
             <p className="text-sm text-neutral-500 leading-relaxed mb-6">
               Premium leather goods crafted for the modern journey. Quality,

@@ -127,7 +127,7 @@ const CollectionPage = () => {
                     {/* CTA Button */}
                     <div className="flex items-center gap-3 text-xs font-bold tracking-widest uppercase text-zinc-500 group-hover:text-white transition-colors duration-300">
                       <div className="h-[1px] w-8 bg-zinc-700 group-hover:bg-white transition-colors"></div>
-                      <span>View Drop</span>
+                      <span>Trigger</span>
                       <ArrowRight className="w-4 h-4 transform group-hover:translate-x-2 transition-transform duration-300 text-white" />
                     </div>
                   </div>
