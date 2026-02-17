@@ -9,7 +9,6 @@ import {
   X,
   CreditCard,
   ArrowUpRight,
-  User,
   Calendar,
   FileText,
   RotateCcw,
@@ -35,17 +34,21 @@ export type Transaction = {
   amount: number;
   date: string;
   status: TransactionStatus;
-  method: string; // e.g. "Visa **** 4242"
+  method: string;
   items: TransactionItem[];
 };
 
-// --- PORTAL HELPER (With Fix) ---
+// --- PORTAL HELPER (FIXED) ---
 function Portal({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    // FIX: Using setTimeout moves the state update to the next event loop tick,
+    // satisfying the linter by avoiding a synchronous cascading render.
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
+
   if (!mounted || typeof document === "undefined") return null;
   return createPortal(children, document.body);
 }
@@ -54,74 +57,83 @@ function Portal({ children }: { children: React.ReactNode }) {
 export default function FinancePage() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // 1. MOCK DATA LOAD
+  // 1. FIX: Initialize Mock Data directly in useState
+  // This prevents an immediate re-render on mount.
+  const [transactions] = useState<Transaction[]>([
+    {
+      id: "TRX-8892-X",
+      customerName: "Alexei V.",
+      customerEmail: "alexei@vanguard.com",
+      amount: 450.0,
+      date: "2026-01-12 14:30",
+      status: "Paid",
+      method: "Visa •••• 4242",
+      items: [
+        {
+          name: "Midnight Vanguard Parka",
+          variant: "Obsidian / L",
+          price: 450.0,
+          image: "/clothes/001.jpg",
+        },
+      ],
+    },
+    {
+      id: "TRX-8891-A",
+      customerName: "Sarah J.",
+      customerEmail: "sarah.j@gmail.com",
+      amount: 125.0,
+      date: "2026-01-12 13:15",
+      status: "Pending",
+      method: "PayPal",
+      items: [
+        {
+          name: "Ash Bone Tee",
+          variant: "Bone / M",
+          price: 125.0,
+          image: "/clothes/002.jpg",
+        },
+      ],
+    },
+    {
+      id: "TRX-8890-F",
+      customerName: "Davido K.",
+      customerEmail: "david.k@outlook.com",
+      amount: 890.0,
+      date: "2026-01-11 09:45",
+      status: "Failed",
+      method: "Mastercard •••• 8821",
+      items: [
+        {
+          name: "Protocol: Zero Boots",
+          variant: "Black / 42",
+          price: 890.0,
+          image: "/clothes/003.jpg",
+        },
+      ],
+    },
+  ]);
+
+  // 2. SCROLL LOCK EFFECT
+  // Handles body scroll locking cleanly when the modal state changes.
   useEffect(() => {
-    setTransactions([
-      {
-        id: "TRX-8892-X",
-        customerName: "Alexei V.",
-        customerEmail: "alexei@vanguard.com",
-        amount: 450.0,
-        date: "2026-01-12 14:30",
-        status: "Paid",
-        method: "Visa •••• 4242",
-        items: [
-          {
-            name: "Midnight Vanguard Parka",
-            variant: "Obsidian / L",
-            price: 450.0,
-            image: "/clothes/001.jpg",
-          },
-        ],
-      },
-      {
-        id: "TRX-8891-A",
-        customerName: "Sarah J.",
-        customerEmail: "sarah.j@gmail.com",
-        amount: 125.0,
-        date: "2026-01-12 13:15",
-        status: "Pending",
-        method: "PayPal",
-        items: [
-          {
-            name: "Ash Bone Tee",
-            variant: "Bone / M",
-            price: 125.0,
-            image: "/clothes/002.jpg",
-          },
-        ],
-      },
-      {
-        id: "TRX-8890-F",
-        customerName: "Davido K.",
-        customerEmail: "david.k@outlook.com",
-        amount: 890.0,
-        date: "2026-01-11 09:45",
-        status: "Failed",
-        method: "Mastercard •••• 8821",
-        items: [
-          {
-            name: "Protocol: Zero Boots",
-            variant: "Black / 42",
-            price: 890.0,
-            image: "/clothes/003.jpg",
-          },
-        ],
-      },
-    ]);
-  }, []);
+    if (selectedTransaction) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedTransaction]);
 
-  // 2. HANDLERS
+  // 3. HANDLERS
   const openDetails = (trx: Transaction) => {
     setSelectedTransaction(trx);
-    document.body.style.overflow = "hidden";
   };
 
   const closeDetails = () => {
     setSelectedTransaction(null);
-    document.body.style.overflow = "unset";
   };
 
   return (

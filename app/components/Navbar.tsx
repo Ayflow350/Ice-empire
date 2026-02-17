@@ -4,13 +4,11 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShoppingCart, Menu, X, ArrowRight } from "lucide-react";
 import { useCart } from "../context/CartContext";
-// 1. Import the Overlay
 import CartOverlay from "../components/CartOverlay";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  // 2. Add State for Cart Overlay
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
@@ -58,10 +56,13 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className="group flex flex-col cursor-pointer relative items-start"
             >
-              <h1 className="logo-text text-2xl md:text-3xl lg:text-4xl font-black tracking-[0.2em] relative z-10">
-                ICEEMPIRE
+              {/* UPDATED LOGO TEXT */}
+              <h1 className="logo-text text-2xl md:text-3xl lg:text-4xl font-black tracking-[0.2em] relative z-10 font-serif">
+                ICEMPIRE
               </h1>
+
               <div className="absolute inset-0 bg-cyan-500/20 blur-[20px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-700"></div>
+
               <span className="text-[8px] md:text-[10px] text-zinc-500 tracking-[0.4em] mt-2 uppercase pl-1 group-hover:text-white transition-colors duration-500">
                 Dominion Est. 2025
               </span>
@@ -101,10 +102,9 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* 3. Updated Cart Button */}
             <button
               className="relative group"
-              onClick={() => setIsCartOpen(true)} // Opens the overlay
+              onClick={() => setIsCartOpen(true)}
             >
               <ShoppingCart
                 className="w-5 h-5 text-white relative z-10 hover:text-cyan-400 transition-colors"
@@ -132,10 +132,8 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* ================= CART OVERLAY ================= */}
       <CartOverlay isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
-      {/* ================= MOBILE MENU OVERLAY ================= */}
       <div
         className={`fixed inset-0 z-40 bg-zinc-950 transition-transform duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${
           isMobileMenuOpen ? "translate-y-0" : "-translate-y-full"
@@ -184,36 +182,48 @@ const Navbar = () => {
 
           <div className="mt-8 text-center">
             <p className="text-[10px] text-zinc-600 uppercase tracking-widest">
-              ICEEMPIRE © 2025
+              ICEMPIRE © 2025
             </p>
           </div>
         </div>
       </div>
 
       <style jsx>{`
+        /* Updated Styling for Character */
         .logo-text {
+          /* Fallback font stack for a gothic feel if image fails or before load */
+          font-family: "Cinzel", "Playfair Display", serif;
+
+          /* OPTION 1: Keep Texture (If feasible) */
           background-image: url("/textures/snowball.jpeg");
           background-size: cover;
           background-position: center;
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
-          filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+
+          /* OPTION 2: Pure White Gothic (Uncomment below to remove texture) */
+          /* 
+          color: white; 
+          text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+          */
+
+          filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.8));
           animation: float 6s ease-in-out infinite;
         }
 
         @keyframes float {
           0% {
             transform: translateY(0px);
-            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.8));
           }
           50% {
             transform: translateY(-4px);
-            filter: drop-shadow(0px 10px 10px rgba(0, 0, 0, 0.3));
+            filter: drop-shadow(0px 15px 10px rgba(0, 0, 0, 0.5));
           }
           100% {
             transform: translateY(0px);
-            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.5));
+            filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.8));
           }
         }
       `}</style>
