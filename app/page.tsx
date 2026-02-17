@@ -1,31 +1,45 @@
+"use client";
+
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 const TriggerStorm = () => {
+  // 1. TS FIX: Explicitly type the ref as HTMLVideoElement
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    // 2. TS FIX: Check if video exists (is not null) before accessing properties
+    if (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+
+      video.play().catch((error) => {
+        console.log("Autoplay was prevented:", error);
+      });
+    }
+  }, []);
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-black">
-      {/* 1. Background Video 
-          Note: I have included a direct link to a free Pexels storm video for the demo. 
-          You can replace the 'src' string with your own local video file path later. 
-      */}
       <video
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        src="/storm.mp4" // <--- Updated to local path
-        poster="/iceempire hero image.jpg"
+        ref={videoRef}
+        className="absolute top-0 left-0 w-full h-full object-cover z-0 pointer-events-none"
+        src="/storm.mp4"
         autoPlay
         loop
         muted
         playsInline
+        preload="auto"
+        // We removed 'webkit-playsinline' to prevent TS warnings,
+        // as 'playsInline' covers modern iOS devices.
       />
 
-      {/* 2. Dark Overlay 
-          This semi-transparent layer sits on top of the video to make the text pop.
-      */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/50 z-10" />
+      <div className="absolute top-0 left-0 w-full h-full bg-black/50 z-10 pointer-events-none" />
 
-      {/* 3. Main Content Container */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full w-full px-4 text-center">
-        {/* Action Button */}
         <Link
           href="/Gate"
           className="group relative px-8 py-4 border border-white 
