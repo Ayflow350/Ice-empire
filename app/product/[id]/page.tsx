@@ -100,8 +100,6 @@ export default function ProductDetailPage() {
       });
     });
 
-    alert(`Added ${quantity * selectedSizes.length} items to cart`);
-
     // Optional: Reset selections
     // setSelectedSizes([]);
     // setQuantity(1);
