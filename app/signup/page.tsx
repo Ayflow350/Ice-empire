@@ -42,7 +42,7 @@ export default function SignUp() {
       });
 
       // Redirect to Sign In on success
-      router.push("/auth/signin");
+      router.push("/signin");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
